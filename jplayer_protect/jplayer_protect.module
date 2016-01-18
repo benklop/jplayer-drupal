@@ -35,7 +35,6 @@ function jplayer_protect_menu() {
 function jplayer_protect_authorize($filepath, $timestamp) {
   $filepath = base64_decode($filepath);
   $timestamp = (int)base64_decode($timestamp);
-
   if (!isset($_SESSION['jplayer_protect'])) {
     $_SESSION['jplayer_protect'] = array();
   }

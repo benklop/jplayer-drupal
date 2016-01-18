@@ -66,7 +66,7 @@
     if (player.playerType != 'jp-type-playlist') {
       // For a single track, it's easy to get the file to play.
       // TODO fix this for jPlayer 2.0.
-      track = $(player).attr('rel');
+      track = $(player).find('audio').attr('src');
     }
     else {
       // Get a reference to the current track using the <ul> list that is used

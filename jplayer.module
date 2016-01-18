@@ -475,7 +475,7 @@ function _jplayer_get_css($skin) {
 function _jplayer_get_js() {
   $path = libraries_get_path('jplayer', FALSE);
   $player_files = array(
-    #'min'   => '/jquery.jplayer.min.js',
+    'min'   => '/jquery.jplayer.min.js',
     'full' => '/jquery.jplayer.js',
   );
 

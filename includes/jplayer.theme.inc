@@ -83,7 +83,7 @@ function theme_jplayer_field($variables) {
 
   $location = _jplayer_get_skin_property($skin, 'location');
   $templates = _jplayer_get_skin_property($skin, 'templates');
-  $themes = _jplayer_get_skin_property($skin, 'theme');
+  $themes = _jplayer_get_skin_property($skin, 'label');
   if (!empty($templates)) {
     $templ_file = _jplayer_select_output($templates, $player['type'], $element['#settings']['mode']);
 
@@ -434,23 +434,33 @@ function _jplayer_categorise_items($item, &$seen) {
     // Collect the types seen for use in a 'supplied' object.
 
     // Assign the file into one of the groups.
-    if (!isset($item['type'])) {
-      $ext = strtolower($item['ext']);
-      if (in_array($ext, $extensions['video'])) {
-        $seen['exts'][$ext] = 1;
-        $seen['type']['video'] = TRUE;
+    $ext = strtolower($item['ext']);
+    if(!isset($seen['type']['video'])) {
+      $seen['type']['video'] = FALSE;
+    }
+    if(!isset($seen['type']['audio'])) {
+      $seen['type']['audio'] = FALSE;
+    }
+    if (in_array($ext, $extensions['video'])) {
+      $seen['exts'][$ext] = 1;
+      $seen['type']['video'] = TRUE;
+      if (!isset($item['type'])) {
         $item['type'] = 'video';
       }
-      elseif (in_array($ext, $extensions['audio'])) {
-        $seen['exts'][$ext] = 1;
-        $seen['type']['audio'] = TRUE;
+    }
+    elseif (in_array($ext, $extensions['audio'])) {
+      $seen['exts'][$ext] = 1;
+      $seen['type']['audio'] = TRUE;
+      if (!isset($item['type'])) {
         $item['type'] = 'audio';
       }
-      elseif (in_array($ext, $extensions['poster'])) {
-        // poster is used iff a video player is used, and we need
-        // the file url.
-        $seen['exts'][$ext] = 1;
-        $seen['type']['poster_url'] = $item['url'];
+    }
+    elseif (in_array($ext, $extensions['poster'])) {
+      // poster is used iff a video player is used, and we need
+      // the file url.
+      $seen['exts'][$ext] = 1;
+      $seen['type']['poster_url'] = $item['url'];
+            if (!isset($item['type'])) {
         $item['type'] = 'poster';
       }
     }
