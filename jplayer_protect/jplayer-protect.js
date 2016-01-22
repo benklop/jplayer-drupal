@@ -16,12 +16,19 @@
           // We can't use the play event as it's fired *after* jPlayer
           // attempts to download the audio.
           //
-          // but we *can* use the loadstart event.
-          if (Drupal.settings.jPlayer.protect) {
-            player.bind($.jPlayer.event.loadstart, function(event) {
-              Drupal.jPlayerProtect.authorize(wrapper, event.jPlayer.status.src);
-            });
-          }
+          // Using the loadstart event seems to be asynchonous to the
+          // actual loading, so that can't be used either.
+          //
+          // Try using a proxy pattern to inject a callback into 
+          // jplayer's load function to authorize the file first
+          (function() {
+            var proxied = player.load;
+            player.load = function() {
+              Drupal.jPlayerProtect.authorize(wrapper, player.status.src).done(function() {
+                return proxied.apply( this, arguments );
+              });
+            };
+          })();
         });
       });
     }
@@ -38,7 +45,7 @@
     // Ping the authorization URL. We need to disable async so that this
     // command finishes before this handler returns.
 
-    $.ajax({
+    return $.ajax({
       url: authorize_url,
       success: function(data) {
         // Check to see if the access has expired. This could happen due to
@@ -57,10 +64,8 @@
         else {
           $('#jplayer-message').fadeOut('fast');
         }
-      },
-      async: false
+      }
     });
-    return false;
   };
 
   Drupal.jPlayerProtect.base64Encode = function(data) {
