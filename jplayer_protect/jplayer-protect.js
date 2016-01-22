@@ -6,50 +6,19 @@
 
   Drupal.jPlayerProtect = Drupal.jPlayerProtect || {};
 
-  Drupal.behaviors.jPlayerProtectNavigation = {
+  Drupal.behaviors.jPlayerProtect = {
     attach: function(context, settings) {
       $('.jp-jplayer', context).each(function() {
-        var wrapper = this.parentNode;
         var player = $(this);
         player.playerType = $(this).parent().attr('class');
         player.filter(':not(.jplayer-protect-processed)').addClass('jplayer-protect-processed').each(function() {
           // We can't use the play event as it's fired *after* jPlayer
           // attempts to download the audio.
-          $(wrapper).find('a.jp-play, a.jp-next, a.jp-previous').each(function() {
-            $(this).click(function() {
-              if (Drupal.settings.jPlayer.protect) {
-                if ($(this).attr('class') == 'jp-next') {
-                  Drupal.jPlayer.next(wrapper, player);
-                }
-                if ($(this).attr('class') == 'jp-previous') {
-                  Drupal.jPlayer.previous(wrapper, player);
-                }
-                Drupal.jPlayerProtect.authorize(wrapper, player);
-              }
-            });
-          });
-        });
-      });
-    }
-  };
-
-  Drupal.behaviors.jPlayerProtectPlaylist = {
-    attach: function(context, settings) {
-      $('.jp-jplayer', context).each(function() {
-        var wrapper = this.parentNode;
-        var player = $(this);
-        player.playerType = $(this).parent().attr('class');
-        var playerId = $(player).attr('id');
-        player.filter(':not(.jplayer-protect-playlist-processed)').addClass('jplayer-protect-playlist-processed').each(function() {
-          $('#' + playerId + '_playlist').find('a').click(function(){
-            if (Drupal.settings.jPlayer.protect) {
-              var index = $(this).attr('id').split('_')[2];
-              if (index) {
-                Drupal.jPlayer.setFiles(wrapper, player, index, true);
-              }
-              Drupal.jPlayerProtect.authorize(wrapper, player);
-            }
-          });
+          //
+          // but we *can* use the loadstart event.
+          if (Drupal.settings.jPlayer.protect) {
+            player.bind($.jPlayer.event.loadstart, Drupal.jPlayerProtect.authorize(event.jPlayer.status.src));
+          }
         });
       });
     }
@@ -58,26 +27,13 @@
   /**
    * Ping the authorization URL to gain access to protected files.
    */
-  Drupal.jPlayerProtect.authorize = function(wrapper, player) {
+  Drupal.jPlayerProtect.authorize = function(track) {
     // Generate the authorization URL to ping.
     var time = new Date();
-
-    var track = "";
-    if (player.playerType != 'jp-type-playlist') {
-      // For a single track, it's easy to get the file to play.
-      // TODO fix this for jPlayer 2.0.
-      track = $(player).find('audio').attr('src');
-    }
-    else {
-      // Get a reference to the current track using the <ul> list that is used
-      // for the jPlayer playlist.
-      track = $('#' + player.attr('id') + '_playlist .jp-playlist-current a').attr('href');
-    }
-
     var authorize_url = Drupal.settings.basePath + 'jplayer_protect/authorize/' + Drupal.jPlayerProtect.base64Encode(track) + '/' + Drupal.jPlayerProtect.base64Encode(parseInt(time.getTime() / 1000).toString());
 
     // Ping the authorization URL. We need to disable async so that this
-    // command finishes before thisandler returns.
+    // command finishes before this handler returns.
 
     $.ajax({
       url: authorize_url,
