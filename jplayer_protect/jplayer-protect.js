@@ -17,7 +17,9 @@
           //
           // but we *can* use the loadstart event.
           if (Drupal.settings.jPlayer.protect) {
-            player.bind($.jPlayer.event.loadstart, Drupal.jPlayerProtect.authorize(event.jPlayer.status.src));
+            player.bind($.jPlayer.event.loadstart, function(event) {
+              Drupal.jPlayerProtect.authorize(event.jPlayer.status.src);
+            });
           }
         });
       });
@@ -30,7 +32,7 @@
   Drupal.jPlayerProtect.authorize = function(track) {
     // Generate the authorization URL to ping.
     var time = new Date();
-    var authorize_url = Drupal.settings.basePath + 'jplayer_protect/authorize/' + Drupal.jPlayerProtect.base64Encode(track) + '/' + Drupal.jPlayerProtect.base64Encode(parseInt(time.getTime() / 1000).toString());
+    var authorize_url = Drupal.settings.basePath + 'jplayer_protect/authorize/' + Drupal.jPlayerProtect.base64Encode(track) + '/' + Drupal.jPlayerProtect.base64Encode(parseInt(time.getTime() / 1000, 10).toString());
 
     // Ping the authorization URL. We need to disable async so that this
     // command finishes before this handler returns.
@@ -40,9 +42,9 @@
       success: function(data) {
         // Check to see if the access has expired. This could happen due to
         // clock sync differences between the server and the client.
-        var seconds = parseInt(data);
+        var seconds = parseInt(data, 10);
         var expires = new Date(seconds * 1000);
-        if ($('#jplayer-message').size() == 0) {
+        if ($('#jplayer-message').size() === 0) {
           $(wrapper).parent().prepend('<div id="jplayer-message" class="messages error"></div>');
           $('#jplayer-message').hide();
         }
