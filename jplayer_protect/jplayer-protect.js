@@ -9,6 +9,7 @@
   Drupal.behaviors.jPlayerProtect = {
     attach: function(context, settings) {
       $('.jp-jplayer', context).each(function() {
+        var wrapper = this.parentNode;
         var player = $(this);
         player.playerType = $(this).parent().attr('class');
         player.filter(':not(.jplayer-protect-processed)').addClass('jplayer-protect-processed').each(function() {
@@ -18,7 +19,7 @@
           // but we *can* use the loadstart event.
           if (Drupal.settings.jPlayer.protect) {
             player.bind($.jPlayer.event.loadstart, function(event) {
-              Drupal.jPlayerProtect.authorize(event.jPlayer.status.src);
+              Drupal.jPlayerProtect.authorize(wrapper, event.jPlayer.status.src);
             });
           }
         });
@@ -29,7 +30,7 @@
   /**
    * Ping the authorization URL to gain access to protected files.
    */
-  Drupal.jPlayerProtect.authorize = function(track) {
+  Drupal.jPlayerProtect.authorize = function(wrapper, track) {
     // Generate the authorization URL to ping.
     var time = new Date();
     var authorize_url = Drupal.settings.basePath + 'jplayer_protect/authorize/' + Drupal.jPlayerProtect.base64Encode(track) + '/' + Drupal.jPlayerProtect.base64Encode(parseInt(time.getTime() / 1000, 10).toString());
