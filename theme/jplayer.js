@@ -65,7 +65,7 @@
               }
 
               // Autoplay?
-              if (playerSettings.autoplay == true) {
+              if (playerSettings.autoplay === true) {
                 $(this).jPlayer("play");
               }
             };
@@ -175,7 +175,7 @@
 
     $(player).jPlayer("setMedia", playerSettings.files[index]);
 
-    if (play == true) {
+    if (play === true) {
       $(player).jPlayer('play');
     }
   };

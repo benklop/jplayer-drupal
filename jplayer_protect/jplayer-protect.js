@@ -20,15 +20,21 @@
           // actual loading, so that can't be used either.
           //
           // Try using a proxy pattern to inject a callback into 
-          // jplayer's load function to authorize the file first
-          (function() {
-            var proxied = player.load;
-            player.load = function() {
-              Drupal.jPlayerProtect.authorize(wrapper, player.status.src).done(function() {
-                return proxied.apply( this, arguments );
+          // jplayer's play function to authorize the file first
+          // this won't work with preloading, that would require 
+          // proxying setMedia too, and load should be as well.
+
+          player.bind($.jPlayer.event.loadstart, function(event) { 
+            if(Drupal.jPlayerProtect.authorized) {
+              Drupal.jPlayerProtect.authorize(wrapper, player.status.src, function() {
+                player.jPlayer("load");
               });
-            };
-          })();
+              return false;
+            }
+            else {
+              return true;
+            }
+          });
         });
       });
     }
@@ -37,7 +43,7 @@
   /**
    * Ping the authorization URL to gain access to protected files.
    */
-  Drupal.jPlayerProtect.authorize = function(wrapper, track) {
+  Drupal.jPlayerProtect.authorize = function(wrapper, track, callback) {
     // Generate the authorization URL to ping.
     var time = new Date();
     var authorize_url = Drupal.settings.basePath + 'jplayer_protect/authorize/' + Drupal.jPlayerProtect.base64Encode(track) + '/' + Drupal.jPlayerProtect.base64Encode(parseInt(time.getTime() / 1000, 10).toString());
@@ -63,6 +69,7 @@
         }
         else {
           $('#jplayer-message').fadeOut('fast');
+          callback;
         }
       }
     });
